@@ -25,10 +25,10 @@ class HotelHandler(tornado.web.RequestHandler):
     def db(self):
         return self.settings["db"]
 
-    # --- GET HOTEL ---
+
     async def get(self, id_hotel=None):
 
-        # lista hotel
+  
         if id_hotel is None:
             lista_hotel = await self.db.hotels.find().to_list(None)
             lista_hotel = [converti_json(h) for h in lista_hotel]
@@ -57,10 +57,10 @@ class HotelHandler(tornado.web.RequestHandler):
     async def put(self, id_hotel):
         dati = json.loads(self.request.body)
 
-        # elimina recensioni collegate
+     
         await self.db.reviews.delete_many({"hotel_id": id_obj(id_hotel)})
 
-        # aggiorna hotel
+      
         await self.db.hotels.update_one({"_id": id_obj(id_hotel)}, {"$set": dati})
         self.write({"messaggio": "Hotel aggiornato"})
 
