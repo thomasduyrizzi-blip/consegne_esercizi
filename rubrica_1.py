@@ -145,8 +145,8 @@ if __name__ == "__main__":
   try:
       asyncio.run(main(shutdown_event))
   except KeyboardInterrupt:
-      shutdown_event.set()
-
+      shutdown_event.set()  # evento completato con set 
+ 
 
 
 
