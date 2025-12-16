@@ -8,6 +8,7 @@ import motor.motor_tornado
 def oid(s):
     return ObjectId(s)
 
+
 def to_json(doc):
     if doc is None:
         return None
@@ -29,20 +30,34 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_status(status)
         self.write(data)
 
+
 class HotelHandler(BaseHandler):
 
     async def get(self, id_hotel=None):
         if id_hotel is None:
             hotels = await self.db.hotels.find().to_list(None)
-            return self.respond({"hotels": [to_json(h) for h in hotels]})
+
+            lista_hotels = []
+            for h in hotels:
+                lista_hotels.append(to_json(h))
+
+            return self.respond({"hotels": lista_hotels})
 
         hotel = await self.db.hotels.find_one({"_id": oid(id_hotel)})
         if hotel is None:
             return self.respond({"errore": "Hotel non trovato"}, 404)
 
         hotel = to_json(hotel)
-        recs = await self.db.reviews.find({"hotel_id": oid(id_hotel)}).to_list(None)
-        hotel["recensioni"] = [to_json(r) for r in recs]
+
+        recs = await self.db.reviews.find(
+            {"hotel_id": oid(id_hotel)}
+        ).to_list(None)
+
+        lista_recensioni = []
+        for r in recs:
+            lista_recensioni.append(to_json(r))
+
+        hotel["recensioni"] = lista_recensioni
 
         self.respond(hotel)
 
@@ -67,8 +82,15 @@ class RecensioneHandler(BaseHandler):
 
     async def get(self, id_hotel, id_recensione=None):
         if id_recensione is None:
-            recs = await self.db.reviews.find({"hotel_id": oid(id_hotel)}).to_list(None)
-            return self.respond({"recensioni": [to_json(r) for r in recs]})
+            recs = await self.db.reviews.find(
+                {"hotel_id": oid(id_hotel)}
+            ).to_list(None)
+
+            lista_recensioni = []
+            for r in recs:
+                lista_recensioni.append(to_json(r))
+
+            return self.respond({"recensioni": lista_recensioni})
 
         rec = await self.db.reviews.find_one({"_id": oid(id_recensione)})
         if rec is None:
@@ -84,7 +106,10 @@ class RecensioneHandler(BaseHandler):
 
     async def put(self, id_hotel, id_recensione):
         dati = self.json_body()
-        await self.db.reviews.replace_one({"_id": oid(id_recensione)}, dati)
+        await self.db.reviews.replace_one(
+            {"_id": oid(id_recensione)},
+            dati
+        )
         self.respond({"messaggio": "Recensione aggiornata"})
 
     async def delete(self, id_hotel, id_recensione):
@@ -92,9 +117,10 @@ class RecensioneHandler(BaseHandler):
         self.respond({"messaggio": "Recensione eliminata"})
 
 
-
 def crea_app():
-    client = motor.motor_tornado.AsyncIOMotorClient("mongodb://localhost:27017")
+    client = motor.motor_tornado.AsyncIOMotorClient(
+        "mongodb://localhost:27017"
+    )
     db = client["hotel_db"]
 
     return tornado.web.Application([
