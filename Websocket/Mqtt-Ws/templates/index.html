@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Seleziona sensore</title>
+</head>
+<body>
+<h1>Seleziona un sensore</h1>
+
+<select id="sensor-select">
+    <option value="">-- scegli un sensore --</option>
+    <option value="temperature">Temperatura</option>
+    <option value="humidity">Umidità</option>
+    <option value="pressure">Pressione</option>
+</select>
+
+<button id="go-btn">Vai</button>
+
+<script>
+    document.getElementById("go-btn").addEventListener("click", function () {
+        const sel = document.getElementById("sensor-select");
+        const sensor = sel.value;
+        if (!sensor) return;
+        // es: /sensor/temperature
+        window.location.href = "/sensor/" + sensor;
+    });
+</script>
+</body>
+</html>

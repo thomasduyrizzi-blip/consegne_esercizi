@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensore Temperatura</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>Sensore: Temperatura</h1>
+
+<a href="/">Torna alla selezione</a>
+
+<h2>Dati grezzi (JSON)</h2>
+<pre id="raw-data"></pre>
+
+<h2>Dati formattati</h2>
+<p>
+    Valore: <span id="value">-</span><br>
+    Unità: <span id="unit">-</span><br>
+    Orario: <span id="time">-</span>
+</p>
+
+<h2>Grafico</h2>
+<canvas id="chart"></canvas>
+
+<script>
+    const SENSOR_TYPE = "temperature";
+
+    const rawEl = document.getElementById("raw-data");
+    const valueEl = document.getElementById("value");
+    const unitEl = document.getElementById("unit");
+    const timeEl = document.getElementById("time");
+
+    const ctx = document.getElementById("chart");
+    const chart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: [],
+            datasets: [{
+                label: "Temperatura",
+                data: [],
+                borderWidth: 2,
+                borderColor: "red"
+            }]
+        },
+        options: {
+            animation: false
+        }
+    });
+
+    const ws = new WebSocket("ws://localhost:8888/ws");
+
+    ws.onmessage = function (event) {
+        const msg = JSON.parse(event.data);
+
+        if (msg.sensor !== SENSOR_TYPE) {
+            return;
+        }
+
+        rawEl.textContent = JSON.stringify(msg, null, 2);
+
+        valueEl.textContent = msg.value;
+        unitEl.textContent = msg.unit;
+
+        const date = new Date(msg.timestamp * 1000);
+        const timeStr = date.toLocaleTimeString();
+        timeEl.textContent = timeStr;
+
+        chart.data.labels.push(timeStr);
+        chart.data.datasets[0].data.push(msg.value);
+
+        if (chart.data.labels.length > 20) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+
+        chart.update();
+    };
+</script>
+</body>
+</html>
